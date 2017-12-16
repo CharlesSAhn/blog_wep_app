@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import ComponentList from '../subComponents/component_list.js'
 import CategoryOptionBlock from '../subComponents/CategoryOptionBlock.js'
 import { Grid } from 'semantic-ui-react'
+import { LIST_TYPE_ALL } from '../utils/ConstantTypes.js'
 
 
 class MainList extends Component{
@@ -9,22 +10,18 @@ class MainList extends Component{
 
     render(){
 
-        const { postList, categoryList, updateCurrentlySeletedCategory, getCurrentlySeletedCategory } = this.props;
-
         return(
             <div>
                 <Grid centered>
                     <Grid.Row>
                         <Grid.Column width={8}>
-                            <ComponentList postList={postList} title={"All Posts"}/>
+                            <ComponentList title={"All Posts"} listType={LIST_TYPE_ALL}/>
                         </Grid.Column>
                     </Grid.Row>
 
                     <Grid.Row>
                         <Grid.Column width={8}>
-                            <CategoryOptionBlock categoryList={categoryList}
-                                                 updateCurrentlySeletedCategory={updateCurrentlySeletedCategory}
-                                                 getCurrentlySeletedCategory={getCurrentlySeletedCategory} />
+                            <CategoryOptionBlock />
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>
@@ -35,4 +32,4 @@ class MainList extends Component{
 }
 
 
-export default MainList
+export default MainList;

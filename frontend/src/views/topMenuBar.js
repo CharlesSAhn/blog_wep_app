@@ -14,9 +14,9 @@ class TopBar extends Component {
                         <Icon name='home' />
                         <Link to="/">Home</Link>
                     </Menu.Item>
-                    <Menu.Item name='camera'>
-                        <Icon name='camera' />
-                        <Link to="/addNew">Add New</Link>
+                    <Menu.Item name='add circle'>
+                        <Icon name='add circle' />
+                        <Link to="/addNew">Add New Post</Link>
                     </Menu.Item>
                 </Sidebar>
             </div>
