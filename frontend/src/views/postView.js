@@ -30,7 +30,7 @@ class PostDetail extends Component{
                         <Grid.Column width={12}>
 
                             {post[0] && (
-                                <Segment padded='very'>
+                                <Segment padded='very' style={{paddingBottom: "60px"}}>
 
                                     <Header textAlign='center' size='medium' color='blue'>{post[0].title}</Header>
 
@@ -91,6 +91,10 @@ class PostDetail extends Component{
                                         </List.Item>
 
                                     </List>
+
+                                    <Link to="/addNew">
+                                        <Button primary floated='left' style={{marginTop: "10px"}}>Update</Button>
+                                    </Link>
 
                                 </Segment>
                             )}

@@ -14,9 +14,11 @@ class CategoryOptionBlock extends Component{
             activityType:'selectedName',
             content:  value
         })
-    }
+    };
 
     render(){
+
+       // const { categoryList, updateCurrentlySeletedCategory, getCurrentlySeletedCategory } = this.props;
 
         const { category } = this.props;
 

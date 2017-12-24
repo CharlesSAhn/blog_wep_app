@@ -14,6 +14,7 @@ class ComponentList extends Component{
     }
 
     getPostList = (blog, listType, category) => {
+
         switch(listType) {
             case LIST_TYPE_CATEGORY:
                 return blog.post.filter(post => post.category === category.selectedName);
@@ -48,7 +49,7 @@ class ComponentList extends Component{
 
     sortBy = (value)=> {
         const { postAction, blog } = this.props;
-        console.log(value);
+
         switch(value){
             case SORT_TYPE_VOTE_SCORE:
                 postAction({
@@ -75,7 +76,7 @@ class ComponentList extends Component{
 
         return(
 
-            <Segment padded='very'>
+            <Segment padded='very' style={{paddingBottom: "60px"}}>
                 <Header textAlign='center' size='medium' color='blue'>{title}</Header>
                 <List selection divided verticalAlign='middle'>
 
@@ -104,6 +105,10 @@ class ComponentList extends Component{
 
                 <Dropdown placeholder='Sort By' fluid search selection options={sortyByList}
                           onChange={(e, { value }) => {this.sortBy(value)}}/>
+
+                <Link to="/addNew">
+                    <Button primary floated='left' style={{marginTop: "10px"}}>Add New</Button>
+                </Link>
 
             </Segment>
 

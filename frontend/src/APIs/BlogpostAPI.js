@@ -18,3 +18,18 @@ export const getCategories = () =>
 export const getComments = (id) =>
     fetch(`${api}/posts/${id}/comments`, { headers })
         .then(res => res.json())
+
+
+export const postNew = (data) =>
+    fetch(`${api}/posts`, {
+        method: 'POST',
+        headers,
+        body: data
+    }).then(res => res.json())
+
+export const updatePost = (data, id) =>
+    fetch(`${api}/posts/${id}`, {
+        method: 'PUT',
+        headers,
+        body: data
+    }).then(res => res.json())

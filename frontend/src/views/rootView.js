@@ -3,10 +3,23 @@ import ComponentList from '../subComponents/component_list.js'
 import CategoryOptionBlock from '../subComponents/CategoryOptionBlock.js'
 import { Grid } from 'semantic-ui-react'
 import { LIST_TYPE_ALL } from '../utils/ConstantTypes.js'
-
+import { connect } from 'react-redux'
+import { postAction } from '../actions'
 
 class MainList extends Component{
 
+
+    componentDidMount(){
+        this.init();
+    }
+
+    init = () => {
+        const { postAction } = this.props;
+        postAction({
+            activityType: 'selectedId',
+            content: null
+        });
+    }
 
     render(){
 
@@ -31,5 +44,10 @@ class MainList extends Component{
     }
 }
 
+function mapDispatchToProps(dispatch){
+    return {
+        postAction: (data) => dispatch( postAction(data) )
+    }
+}
 
-export default MainList;
+export default connect(null, mapDispatchToProps) (MainList);
