@@ -16,6 +16,9 @@ class AddNew extends Component{
         body: '',
         author: '',
         category: '',
+        voteScore:1,
+        deleted: false,
+        commentCount: 0,
         home_redirect: false,
         validation: true
     };
@@ -27,7 +30,8 @@ class AddNew extends Component{
         if(blog.selectedId !== null){
             let p = blog.post.filter(p => p.id === blog.selectedId);
 
-            this.setState({ title:  p[0].title, body: p[0].body, author: p[0].author, category: p[0].category, id: p[0].id });
+            this.setState({ title:  p[0].title, body: p[0].body, author: p[0].author, category: p[0].category, id: p[0].id,
+                            voteScore: p[0].voteScore, deleted: p[0].deleted, commentCount: p[0].commentCount});
         }
 
 
@@ -54,7 +58,7 @@ class AddNew extends Component{
     handleSubmit = () => {
 
         if(this.validator()){
-            const { title, body, author, category, id } = this.state;
+            const { title, body, author, category, id, voteScore, commentCount, deleted } = this.state;
             const { postAction, blog } = this.props;
 
             if(blog.selectedId === null){
@@ -96,7 +100,10 @@ class AddNew extends Component{
                     author: author,
                     category: category,
                     timestamp: Date.now(),
-                    id: id
+                    id: id,
+                    voteScore: voteScore,
+                    commentCount: commentCount,
+                    deleted:deleted
                 };
 
 
@@ -109,9 +116,6 @@ class AddNew extends Component{
                     });
                 });
             }
-
-
-
 
             this.setState({ home_redirect: true });
         }

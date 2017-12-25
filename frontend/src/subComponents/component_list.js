@@ -17,12 +17,12 @@ class ComponentList extends Component{
 
         switch(listType) {
             case LIST_TYPE_CATEGORY:
-                return blog.post.filter(post => post.category === category.selectedName);
+                return blog.post.filter(post => post.category === category.selectedName).filter(post => post.deleted === false);
             default:
-                return blog.post;
+                return blog.post.filter(post => post.deleted === false);
 
         }
-    }
+    };
 
     handleClick = (post, event) => {
         const { postAction } = this.props;
@@ -33,19 +33,37 @@ class ComponentList extends Component{
         });
 
         this.callCommentsAPI(post.id);
-    }
+    };
 
     callCommentsAPI(id){
-        const { addComments } = this.props;
+        let { addComments, existingComment } = this.props;
+        //let tempComment = existingComment;
+        getComments(id).then((newComments) => {
 
-        getComments(id).then((comments) => {
+            newComments.map(c => {
+                console.log(c);
+                existingComment = existingComment.filter(eComment => eComment.id !== c.id)
+                existingComment.push(c);
+                console.log(existingComment);
+            });
+
+
+            // for(var key in newComments){
+            //     if(newComments.hasOwnProperty(key)){
+            //         if(existingComment.find( o => { o.id === newComments[key].id}) !== undefined)
+            //         {
+            //             tempComment = existingComment.filter(c => c.id !== newComments[key].id);
+            //         };
+            //         tempComment.push(newComments[key]);
+            //     }
+            // };
 
             addComments({
                 activityType: 'comments',
-                content: comments
+                content: existingComment
             });
         })
-    }
+    };
 
     sortBy = (value)=> {
         const { postAction, blog } = this.props;
@@ -83,21 +101,21 @@ class ComponentList extends Component{
                     {
                         this.getPostList(blog, listType, category).map(post =>
 
-                                <List.Item key={post.id} value={post.id} onClick={this.handleClick.bind(this, post)}>
-                                    <Link to="/postDetail">
-                                        <List.Content>
-                                            <List.Header>
-                                                Title: {post.title}
-                                            </List.Header>
-                                            <List.Description>
-                                                Category: {post.category},
-                                                Timestamp: { this.convertEpochToDate(post.timestamp)},
-                                                Vote Score: {post.voteScore}
-                                            </List.Description>
-                                        </List.Content>
-                                    </Link>
+                            <List.Item key={post.id} value={post.id} onClick={this.handleClick.bind(this, post)}>
+                                <Link to="/postDetail">
+                                    <List.Content>
+                                        <List.Header>
+                                            Title: {post.title}
+                                        </List.Header>
+                                        <List.Description>
+                                            Category: {post.category},
+                                            Timestamp: { this.convertEpochToDate(post.timestamp)},
+                                            Vote Score: {post.voteScore}
+                                        </List.Description>
+                                    </List.Content>
+                                </Link>
 
-                                </List.Item>
+                            </List.Item>
                         )
                     }
 
@@ -118,10 +136,11 @@ class ComponentList extends Component{
     }
 }
 
-function mapStateToProps({blog, category}){
+function mapStateToProps({blog, category, comment}){
     return{
         blog: blog,
-        category: category
+        category: category,
+        existingComment: comment.comments
     }
 }
 

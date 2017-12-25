@@ -33,3 +33,18 @@ export const updatePost = (data, id) =>
         headers,
         body: data
     }).then(res => res.json())
+
+export const deletePost = (id) =>
+    fetch(`${api}/posts/${id}`, {
+        method: 'DELETE',
+        headers
+    }).then(res => res.json())
+
+
+export const postNewComment = (data) =>
+    fetch(`${api}/comments`, {
+        method: 'POST',
+        headers,
+        body: data
+    }).then(res => res.json())
+
