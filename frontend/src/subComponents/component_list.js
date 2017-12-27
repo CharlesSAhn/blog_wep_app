@@ -41,22 +41,9 @@ class ComponentList extends Component{
         getComments(id).then((newComments) => {
 
             newComments.map(c => {
-                console.log(c);
                 existingComment = existingComment.filter(eComment => eComment.id !== c.id)
                 existingComment.push(c);
-                console.log(existingComment);
             });
-
-
-            // for(var key in newComments){
-            //     if(newComments.hasOwnProperty(key)){
-            //         if(existingComment.find( o => { o.id === newComments[key].id}) !== undefined)
-            //         {
-            //             tempComment = existingComment.filter(c => c.id !== newComments[key].id);
-            //         };
-            //         tempComment.push(newComments[key]);
-            //     }
-            // };
 
             addComments({
                 activityType: 'comments',

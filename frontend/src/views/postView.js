@@ -4,7 +4,7 @@ import { Button, List, Segment, Header, Form } from 'semantic-ui-react'
 import { connect } from 'react-redux'
 import { Link, Redirect } from 'react-router-dom';
 import { Icon } from 'semantic-ui-react'
-import { deletePost, postNewComment } from '../APIs/BlogpostAPI';
+import { deletePost, postNewComment, updateComment } from '../APIs/BlogpostAPI';
 import { postAction, commentAction } from '../actions';
 
 class PostDetail extends Component{
@@ -12,9 +12,26 @@ class PostDetail extends Component{
     state = {
         home_redirect: false,
         addCommentMode: false,
+        updateCommentMode: false,
+        updateCommentObj : null,
         validation: false,
         commentFields_author: '',
         commentFields_comment: ''
+    };
+
+    commentDelete = (comment) => {
+
+        const { allComments, addComments } = this.props;
+        const deletedComment = allComments.filter(c => c.id !== comment.id);
+
+        addComments({
+            activityType: 'comments',
+            content: deletedComment
+        });
+    };
+
+    commentUpdate = ( comment ) => {
+        this.setState({ updateCommentMode: true, commentFields_author: comment.author, commentFields_comment: comment.body, updateCommentObj: comment  });
     };
 
     validator = () => {
@@ -34,35 +51,81 @@ class PostDetail extends Component{
     commentSubmit = () => {
 
         if(this.validator()){
-            const { commentFields_author, commentFields_comment } = this.state;
+            const { commentFields_author, commentFields_comment, updateCommentObj, updateCommentMode } = this.state;
             const { blog, addComments, allComments } = this.props;
 
-            let commentObj = {
-                id: Date.now().toString(),
-                timestamp: Date.now(),
-                body: commentFields_comment,
-                author: commentFields_author,
-                parentId: blog.selectedId
+            let commentObj = null;
+            if(updateCommentMode){
+                commentObj = {
+                    timestamp: Date.now(),
+                    body: commentFields_comment
+                }
+
+                updateComment(commentObj, updateCommentObj.id).then((res) => {
+
+                    console.log(res);
+                    res.body = commentFields_comment;
+
+                    const udpatedCommentList = allComments.filter(c => c.id !== updateCommentObj.id);
+                    udpatedCommentList.push(res);
+
+                    addComments({
+                        activityType: 'comments',
+                        content: udpatedCommentList
+                    });
+
+                    this.setState({ updateCommentMode: false, commentFields_author: '', commentFields_comment: '', updateCommentObj: null  });
+
+                })
+            }
+            else{
+                commentObj = {
+                    id: updateCommentObj.id,
+                    timestamp: updateCommentObj.timestamp,
+                    body: commentFields_comment,
+                    author: commentFields_author,
+                    parentId: blog.selectedId
+                }
+
+                postNewComment(commentObj).then((res) => {
+
+                    if(updateCommentMode){
+
+                    }else{
+
+                    }
+
+                    for(var key in res){
+                        if(res.hasOwnProperty(key)){
+                            commentObj[key] = res[key];
+                        }
+                    };
+
+                    allComments.push(commentObj);
+
+                    addComments({
+                        activityType: 'comments',
+                        content: allComments
+                    });
+
+                    //update blog post object by incrementing the comment count.
+                    let tempPost = []
+                    blog.post.map(post => {
+                        if(post.id === blog.selectedId)
+                            post.commentCount += 1;
+                        tempPost.push(post);
+                    });
+
+                    postAction({
+                        activityType: 'post',
+                        content: tempPost
+                    });
+
+                    this.setState({ addCommentMode: false, commentFields_author: '', commentFields_comment: ''  });
+
+                });
             }
 
-            console.log(commentObj);
-
-            postNewComment(commentObj).then((res) => {
-
-                for(var key in res){
-                    if(res.hasOwnProperty(key)){
-                        commentObj[key] = res[key];
-                    }
-                };
-
-                allComments.push(commentObj);
-
-                addComments({
-                    activityType: 'comments',
-                    content: allComments
-                });
-
-            });
 
         }else{
             this.setState({ validation: false });
@@ -102,10 +165,28 @@ class PostDetail extends Component{
 
     };
 
+    changeVoteScore = (action, postObject) => {
+
+        const { blog, postAction } = this.props;
+
+        let copy = Object.assign({}, postObject);
+        if(action === '-')
+            copy.voteScore --;
+        else
+            copy.voteScore ++;
+
+        let p = blog.post.filter(p => p.id !== postObject.id);
+        p.push(copy);
+        postAction({
+            activityType: 'post',
+            content: p
+        });
+    }
+
     render(){
 
         const { post, comment } = this.props;
-        const { home_redirect, addCommentMode, validation, commentFields_comment, commentFields_author } = this.state;
+        const { home_redirect, addCommentMode, updateCommentMode, validation, commentFields_comment, commentFields_author } = this.state;
 
         return(
             <div>
@@ -155,6 +236,8 @@ class PostDetail extends Component{
                                                 </List.Header>
                                                 <List.Description>
                                                     {post[0].voteScore}
+                                                    <Button size='mini' onClick={this.changeVoteScore.bind(this, '+', post[0])} floated="right" color="olive">+</Button>
+                                                    <Button size='mini' onClick={this.changeVoteScore.bind(this, '-', post[0])} floated="right" color="olive">-</Button>
                                                 </List.Description>
                                             </List.Content>
                                         </List.Item>
@@ -193,26 +276,32 @@ class PostDetail extends Component{
 
                             {post[0] && (
                                 <Segment padded='very' style={{paddingBottom: "60px"}}>
-                                    <Header size='medium' color='blue'>({post[0].commentCount}) Comments:</Header>
+                                    <Header size='medium' color='blue'> {post[0].commentCount} Comments</Header>
 
-                                    <Segment>
-                                        <List divided verticalAlign='middle'>
-                                        {
-                                            comment.map( c =>
-                                                <List.Item key={c.id}>
-                                                    <List.Content>
-                                                        <List.Header>
-                                                            author: {c.author}, voteScore: {c.voteScore}
-                                                        </List.Header>
-                                                        <List.Description>
-                                                            {c.body}
-                                                        </List.Description>
-                                                    </List.Content>
-                                                </List.Item>
-                                            )
-                                        }
-                                        </List>
-                                    </Segment>
+                                    { post[0].commentCount > 0 && (
+                                        <Segment>
+                                            <List divided verticalAlign='middle'>
+                                                {
+                                                    comment.map( c =>
+                                                        <List.Item key={c.id}>
+                                                            <List.Content>
+                                                                <List.Header>
+                                                                    author: {c.author}, voteScore: {c.voteScore}
+                                                                </List.Header>
+                                                                <List.Description>
+                                                                    {c.body}
+                                                                    <Button size='mini' onClick={this.commentDelete.bind(this, c)} floated="right" color="google plus">Delete</Button>
+                                                                    <Button size='mini' onClick={this.commentUpdate.bind(this, c)} floated="right" color="instagram">Update</Button>
+                                                                </List.Description>
+                                                            </List.Content>
+                                                        </List.Item>
+                                                    )
+                                                }
+                                            </List>
+                                        </Segment>
+                                    )}
+
+
                                     <Button primary onClick={this.addCommentMode} floated='left' style={{marginTop: "10px"}}>Add Comment</Button>
 
                                     { addCommentMode && (
@@ -229,6 +318,27 @@ class PostDetail extends Component{
                                                 {
                                                     validation && (
                                                         <p>All fields must be filled!</p>
+                                                    )
+                                                }
+
+                                            </Form>
+                                        </Segment>
+                                    )}
+
+                                    { updateCommentMode && (
+                                        <Segment>
+                                            <Form onSubmit={this.commentSubmit}>
+                                                <Form.Field disabled>
+                                                    <Form.Input label='author' placeholder='author' name='commentFields_author' value={commentFields_author} onChange={this.handleChange}/>
+                                                </Form.Field>
+                                                <Form.Field required>
+                                                    <Form.TextArea label='comment' placeholder='comment...' name='commentFields_comment' value={commentFields_comment} onChange={this.handleChange}/>
+                                                </Form.Field>
+                                                <Form.Button>Submit</Form.Button>
+
+                                                {
+                                                    validation && (
+                                                        <p>Field must be filled!</p>
                                                     )
                                                 }
 

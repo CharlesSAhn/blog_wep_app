@@ -48,3 +48,9 @@ export const postNewComment = (data) =>
         body: data
     }).then(res => res.json())
 
+export const updateComment = (body, id)=>
+    fetch(`${api}/comments/${id}`, {
+        method: 'PUT',
+        headers,
+        body: body
+    }).then(res => res.json())
