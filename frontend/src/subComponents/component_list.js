@@ -15,6 +15,8 @@ class ComponentList extends Component{
 
     getPostList = (blog, listType, category) => {
 
+        console.log(this.props);
+
         switch(listType) {
             case LIST_TYPE_CATEGORY:
                 return blog.post.filter(post => post.category === category.selectedName).filter(post => post.deleted === false);
@@ -72,7 +74,7 @@ class ComponentList extends Component{
 
 
         }
-    }
+    };
 
     render(){
 
@@ -89,15 +91,29 @@ class ComponentList extends Component{
                         this.getPostList(blog, listType, category).map(post =>
 
                             <List.Item key={post.id} value={post.id} onClick={this.handleClick.bind(this, post)}>
-                                <Link to="/postDetail">
+                                <Link to={`/${post.category}/${post.id}`}>
                                     <List.Content>
                                         <List.Header>
                                             Title: {post.title}
                                         </List.Header>
                                         <List.Description>
-                                            Category: {post.category},
-                                            Timestamp: { this.convertEpochToDate(post.timestamp)},
-                                            Vote Score: {post.voteScore}
+                                            <List>
+                                                <List.Item key={post.author}>
+                                                    Author: {post.author}
+                                                </List.Item>
+                                                <List.Item key={post.commentCount}>
+                                                    Comment Count: {post.commentCount}
+                                                </List.Item>
+                                                <List.Item key={post.category}>
+                                                    Category: {post.category}
+                                                </List.Item>
+                                                <List.Item key={post.timestamp}>
+                                                    Timestamp: { this.convertEpochToDate(post.timestamp)}
+                                                </List.Item>
+                                                <List.Item key={post.voteScore}>
+                                                    Vote Score: {post.voteScore}
+                                                </List.Item>
+                                            </List>
                                         </List.Description>
                                     </List.Content>
                                 </Link>
@@ -111,7 +127,7 @@ class ComponentList extends Component{
                 <Dropdown placeholder='Sort By' fluid search selection options={sortyByList}
                           onChange={(e, { value }) => {this.sortBy(value)}}/>
 
-                <Link to="/addNew">
+                <Link to="/addNew/addNew/addNew">
                     <Button primary floated='left' style={{marginTop: "10px"}}>Add New</Button>
                 </Link>
 

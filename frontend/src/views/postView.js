@@ -4,7 +4,7 @@ import { Button, List, Segment, Header, Form } from 'semantic-ui-react'
 import { connect } from 'react-redux'
 import { Link, Redirect } from 'react-router-dom';
 import { Icon } from 'semantic-ui-react'
-import { deletePost, postNewComment, updateComment } from '../APIs/BlogpostAPI';
+import { deletePost, postNewComment, updateComment, votePOST, voteCOMMENTS } from '../APIs/BlogpostAPI';
 import { postAction, commentAction } from '../actions';
 
 class PostDetail extends Component{
@@ -80,8 +80,8 @@ class PostDetail extends Component{
             }
             else{
                 commentObj = {
-                    id: updateCommentObj.id,
-                    timestamp: updateCommentObj.timestamp,
+                    id: Date.now().toString(),
+                    timestamp: Date.now(),
                     body: commentFields_comment,
                     author: commentFields_author,
                     parentId: blog.selectedId
@@ -165,23 +165,72 @@ class PostDetail extends Component{
 
     };
 
+
     changeVoteScore = (action, postObject) => {
 
+        let copy = Object.assign({}, postObject);
+        if(action === '-'){
+            votePOST(postObject.id, "downVote").then((res) => {
+                if(res.status === 200){
+                    copy.voteScore -=  1;
+                    this.updateVote(copy);
+                }
+            })
+        }
+        else{
+            votePOST(postObject.id, "upVote").then((res) => {
+                if(res.status === 200){
+                    copy.voteScore += 1;
+                    this.updateVote(copy);
+                }
+            })
+        }
+    };
+
+    updateVote = (copyPost) => {
         const { blog, postAction } = this.props;
 
-        let copy = Object.assign({}, postObject);
-        if(action === '-')
-            copy.voteScore --;
-        else
-            copy.voteScore ++;
-
-        let p = blog.post.filter(p => p.id !== postObject.id);
-        p.push(copy);
+        let p = blog.post.filter(p => p.id !== copyPost.id);
+        p.push(copyPost);
         postAction({
             activityType: 'post',
             content: p
         });
-    }
+    };
+
+    changeCommentVoteScore = (action, commentObject) => {
+        let copy = Object.assign({}, commentObject);
+
+        if(action === '-'){
+            voteCOMMENTS(commentObject.id, "downVote").then((res) => {
+                if(res.status === 200){
+                    copy.voteScore -=  1;
+                    this.updateCommentVote(copy);
+                }
+            })
+        }
+        else{
+            voteCOMMENTS(commentObject.id, "upVote").then((res) => {
+                if(res.status === 200){
+                    copy.voteScore += 1;
+                    this.updateCommentVote(copy);
+                }
+            })
+        }
+    };
+
+    updateCommentVote = (copy) => {
+        const { comment, addComments } = this.props;
+
+        let p = comment.filter(p => p.id !== copy.id);
+        p.push(copy);
+        addComments({
+            activityType: 'comments',
+            content: p
+        });
+    };
+
+
 
     render(){
 
@@ -266,7 +315,7 @@ class PostDetail extends Component{
 
                                     </List>
 
-                                    <Link to="/addNew">
+                                    <Link to="/addNew/addNew/addNew">
                                         <Button primary floated='left' style={{marginTop: "10px"}}>Update</Button>
                                     </Link>
                                     <Button  onClick={this.deletePostFunction} color='red' floated='left' style={{marginTop: "10px"}}>Delete</Button>
@@ -286,12 +335,21 @@ class PostDetail extends Component{
                                                         <List.Item key={c.id}>
                                                             <List.Content>
                                                                 <List.Header>
-                                                                    author: {c.author}, voteScore: {c.voteScore}
+                                                                    author: {c.author}
                                                                 </List.Header>
                                                                 <List.Description>
-                                                                    {c.body}
-                                                                    <Button size='mini' onClick={this.commentDelete.bind(this, c)} floated="right" color="google plus">Delete</Button>
-                                                                    <Button size='mini' onClick={this.commentUpdate.bind(this, c)} floated="right" color="instagram">Update</Button>
+                                                                    <List>
+                                                                        <List.Item key={c.voteScore}>
+                                                                            voteScore: {c.voteScore}
+                                                                            <Button size='mini' onClick={this.changeCommentVoteScore.bind(this, '+', c)} floated="right" color="olive">+</Button>
+                                                                            <Button size='mini' onClick={this.changeCommentVoteScore.bind(this, '-', c)} floated="right" color="olive">-</Button>
+                                                                        </List.Item>
+                                                                        <List.Item key={c.body}>
+                                                                            Comments:: {c.body}
+                                                                        </List.Item>
+                                                                    </List>
+                                                                    <Button size='mini' onClick={this.commentDelete.bind(this, c)} floated="left" color="google plus">Delete</Button>
+                                                                    <Button size='mini' onClick={this.commentUpdate.bind(this, c)} floated="left" color="instagram">Update</Button>
                                                                 </List.Description>
                                                             </List.Content>
                                                         </List.Item>

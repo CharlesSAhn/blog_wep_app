@@ -28,7 +28,7 @@ class CategoryOptionBlock extends Component{
                 <Dropdown placeholder='Category' fluid search selection options={category.categoryTypes} value={category.selectedName}
                           onChange={(e, { value }) => {this.selectCategoryMethod(value)}}/>
 
-                <Link to="/category">
+                <Link to={`/${category.selectedName}`}>
                     <Button primary floated='right' style={{marginTop: "10px"}}>Apply</Button>
                 </Link>
             </Segment>
