@@ -72,7 +72,6 @@ class AddNew extends Component{
                     id: Date.now().toString()
                 };
 
-
                 postNew(obj).then((res) => {
 
                     for(var key in res){

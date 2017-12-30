@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Button, List, Segment, Header } from 'semantic-ui-react'
 import { connect } from 'react-redux'
 import { LIST_TYPE_CATEGORY, LIST_TYPE_ALL, SORT_TYPE_VOTE_SCORE, SORT_TYPE_TIMESTAMP } from '../utils/ConstantTypes.js'
-import { getComments } from "../APIs/BlogpostAPI";
+import { getComments, votePOST, deletePost } from "../APIs/BlogpostAPI";
 import { postAction, commentAction } from '../actions'
 import { Grid, Dropdown } from 'semantic-ui-react'
 
@@ -13,9 +13,25 @@ class ComponentList extends Component{
         return new Date(epoch).toDateString();
     }
 
-    getPostList = (blog, listType, category) => {
+    resetSelectedId = () => {
+        const { postAction } = this.props;
 
-        console.log(this.props);
+        postAction({
+            activityType: 'selectedId',
+            content: null
+        });
+    }
+
+    updateSelectedPOSTid = (post) => {
+        const { postAction } = this.props;
+
+        postAction({
+            activityType: 'selectedId',
+            content: post.id
+        });
+    }
+
+    getPostList = (blog, listType, category) => {
 
         switch(listType) {
             case LIST_TYPE_CATEGORY:
@@ -24,6 +40,65 @@ class ComponentList extends Component{
                 return blog.post.filter(post => post.deleted === false);
 
         }
+    };
+
+    deletePostFunction = (id) => {
+        const { blog, postAction, comment, addComments } = this.props;
+        let temp = [];
+        comment.map(p => {
+            if(p.parentId === id)
+                p.parentDeleted = true;
+            temp.push(p);
+        });
+
+        addComments({
+            activityType: 'comments',
+            content: temp
+        });
+
+        console.log(id);
+
+        deletePost(id).then((res) => {
+            let p = blog.post.filter(p => p.id !== id);
+            postAction({
+                activityType: 'post',
+                content: p
+            });
+        });
+        this.setState({ home_redirect: true });
+
+    };
+
+    changeVoteScore = (action, postObject) => {
+
+        let copy = Object.assign({}, postObject);
+        if(action === '-'){
+            votePOST(postObject.id, "downVote").then((res) => {
+                if(res.status === 200){
+                    copy.voteScore -=  1;
+                    this.updateVote(copy);
+                }
+            })
+        }
+        else{
+            votePOST(postObject.id, "upVote").then((res) => {
+                if(res.status === 200){
+                    copy.voteScore += 1;
+                    this.updateVote(copy);
+                }
+            })
+        }
+    };
+
+    updateVote = (copyPost) => {
+        const { blog, postAction } = this.props;
+
+        let p = blog.post.filter(p => p.id !== copyPost.id);
+        p.push(copyPost);
+        postAction({
+            activityType: 'post',
+            content: p
+        });
     };
 
     handleClick = (post, event) => {
@@ -90,34 +165,42 @@ class ComponentList extends Component{
                     {
                         this.getPostList(blog, listType, category).map(post =>
 
-                            <List.Item key={post.id} value={post.id} onClick={this.handleClick.bind(this, post)}>
-                                <Link to={`/${post.category}/${post.id}`}>
-                                    <List.Content>
-                                        <List.Header>
-                                            Title: {post.title}
-                                        </List.Header>
-                                        <List.Description>
-                                            <List>
-                                                <List.Item key={post.author}>
-                                                    Author: {post.author}
-                                                </List.Item>
-                                                <List.Item key={post.commentCount}>
-                                                    Comment Count: {post.commentCount}
-                                                </List.Item>
-                                                <List.Item key={post.category}>
-                                                    Category: {post.category}
-                                                </List.Item>
-                                                <List.Item key={post.timestamp}>
-                                                    Timestamp: { this.convertEpochToDate(post.timestamp)}
-                                                </List.Item>
-                                                <List.Item key={post.voteScore}>
-                                                    Vote Score: {post.voteScore}
-                                                </List.Item>
-                                            </List>
-                                        </List.Description>
-                                    </List.Content>
-                                </Link>
-
+                            <List.Item key={post.id} value={post.id} onClick={this.updateSelectedPOSTid.bind(this, post)}>
+                                <List.Content>
+                                    <List.Header>
+                                        Title: {post.title}
+                                    </List.Header>
+                                    <List.Description>
+                                        <List>
+                                            <List.Item key={post.author}>
+                                                Author: {post.author}
+                                            </List.Item>
+                                            <List.Item key={post.commentCount}>
+                                                Comment Count: {post.commentCount}
+                                            </List.Item>
+                                            <List.Item key={post.category}>
+                                                Category: {post.category}
+                                            </List.Item>
+                                            <List.Item key={post.timestamp}>
+                                                Timestamp: { this.convertEpochToDate(post.timestamp)}
+                                            </List.Item>
+                                            <List.Item key={post.voteScore}>
+                                                Vote Score: {post.voteScore}
+                                                <Button size='mini' onClick={this.changeVoteScore.bind(this, '+', post)} floated="right" color="olive">+</Button>
+                                                <Button size='mini' onClick={this.changeVoteScore.bind(this, '-', post)} floated="right" color="olive">-</Button>
+                                            </List.Item>
+                                            <List.Item>
+                                                <Link to={`/${post.category}/${post.id}`}>
+                                                    <Button onClick={this.handleClick.bind(this, post)} color='grey' floated='left' style={{marginTop: "10px"}}>Detail</Button>
+                                                </Link>
+                                                <Link to="/addNew/addNew/addNew">
+                                                    <Button primary floated='left' style={{marginTop: "10px"}}>Update</Button>
+                                                </Link>
+                                                <Button  onClick={this.deletePostFunction.bind(this, post.id)} color='red' floated='left' style={{marginTop: "10px"}}>Delete</Button>
+                                            </List.Item>
+                                        </List>
+                                    </List.Description>
+                                </List.Content>
                             </List.Item>
                         )
                     }
@@ -128,7 +211,7 @@ class ComponentList extends Component{
                           onChange={(e, { value }) => {this.sortBy(value)}}/>
 
                 <Link to="/addNew/addNew/addNew">
-                    <Button primary floated='left' style={{marginTop: "10px"}}>Add New</Button>
+                    <Button onClick={this.resetSelectedId.bind(this)} primary floated='left' style={{marginTop: "10px"}}>Add New</Button>
                 </Link>
 
             </Segment>
@@ -143,7 +226,8 @@ function mapStateToProps({blog, category, comment}){
     return{
         blog: blog,
         category: category,
-        existingComment: comment.comments
+        existingComment: comment.comments,
+        comment:(blog.selectedId) ? comment.comments.filter(c => c.parentId === blog.selectedId) : [],
     }
 }
 

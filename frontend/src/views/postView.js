@@ -87,13 +87,8 @@ class PostDetail extends Component{
                     parentId: blog.selectedId
                 }
 
-                postNewComment(commentObj).then((res) => {
-
-                    if(updateCommentMode){
-
-                    }else{
-
-                    }
+                console.log(Object.assign({}, commentObj));
+                postNewComment(Object.assign({}, commentObj)).then((res) => {
 
                     for(var key in res){
                         if(res.hasOwnProperty(key)){

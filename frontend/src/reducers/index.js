@@ -1,10 +1,6 @@
 import { combineReducers } from 'redux'
 
-import {
-    POST_ACTION,
-    CATEGORY_ACTION,
-    COMMENT_ACTION
-} from '../actions/'
+import * as type from '../actions'
 
 
 const intialBlogState = {
@@ -27,7 +23,7 @@ function blog(state = intialBlogState, action) {
     const {activityType, content } = action;
 
     switch(action.type) {
-        case POST_ACTION:
+        case type.POST_ACTION:
             return {
                 ...state,
                 [activityType]:content,
@@ -42,7 +38,7 @@ function category(state = initialCategoryState, action) {
     const {activityType, content } = action;
 
     switch(action.type) {
-        case CATEGORY_ACTION:
+        case type.CATEGORY_ACTION:
             return {
                 ...state,
                 [activityType]:content,
@@ -57,7 +53,7 @@ function comment(state = initialCommentState, action) {
     const {activityType, content } = action;
 
     switch(action.type) {
-        case COMMENT_ACTION:
+        case type.COMMENT_ACTION:
             return {
                 ...state,
                 [activityType]:content,
