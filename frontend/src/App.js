@@ -21,8 +21,6 @@ class App extends Component {
 
         const paths = location.pathname.split('/').filter( p => p.length > 0 );
 
-        console.log(paths);
-
         BlogPostAPI.getAllPosts().then((posts) => {
 
             addPost({
@@ -31,7 +29,7 @@ class App extends Component {
             });
 
 
-        })
+        });
 
         BlogPostAPI.getCategories().then((categories) => {
             categories.categories.map(cat => cat.text = cat.name);
@@ -41,9 +39,11 @@ class App extends Component {
                 content:  categories.categories
             })
 
-        })
+        });
 
         if(paths.length === 2){
+
+            console.log(paths);
 
             //get current POST
             addPost({
@@ -63,7 +63,7 @@ class App extends Component {
                     activityType: 'comments',
                     content: existingComment
                 });
-            })
+            });
 
         }
         else if(paths.length === 1 ){
@@ -71,7 +71,7 @@ class App extends Component {
             selectCategory({
                 activityType:'selectedName',
                 content:  paths[0]
-            })
+            });
 
         }
 

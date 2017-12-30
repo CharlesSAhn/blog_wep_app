@@ -404,7 +404,7 @@ class PostDetail extends Component{
 
                             {!post[0] && (
                                 <Segment padded='very'>
-                                    <Header textAlign='center' size='medium' color='blue'>Blog Post Not Selected</Header>
+                                    <Header textAlign='center' size='medium' color='blue'>Blog is either deleted or doesn't exist.</Header>
                                 </Segment>
                             )}
 
