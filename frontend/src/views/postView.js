@@ -4,7 +4,7 @@ import { Button, List, Segment, Header, Form } from 'semantic-ui-react'
 import { connect } from 'react-redux'
 import { Link, Redirect } from 'react-router-dom';
 import { Icon } from 'semantic-ui-react'
-import { deletePost, postNewComment, updateComment, votePOST, voteCOMMENTS } from '../APIs/BlogpostAPI';
+import { deletePost, postNewComment, updateComment, votePOST, voteCOMMENTS, deleteComments } from '../APIs/BlogpostAPI';
 import { postAction, commentAction } from '../actions';
 
 class PostDetail extends Component{
@@ -21,13 +21,29 @@ class PostDetail extends Component{
 
     commentDelete = (comment) => {
 
-        const { allComments, addComments } = this.props;
-        const deletedComment = allComments.filter(c => c.id !== comment.id);
+        const { allComments, addComments, blog } = this.props;
 
-        addComments({
-            activityType: 'comments',
-            content: deletedComment
+        deleteComments(comment.id).then((res) => {
+
+            const deletedComment = allComments.filter(c => c.id !== comment.id);
+            addComments({
+                activityType: 'comments',
+                content: deletedComment
+            });
+
+            let updatePost = blog.post.filter(p => p.id === blog.selectedId);
+            updatePost[0].commentCount -= 1;
+            let otherPosts = blog.post.filter(p => p.id !== blog.selectedId);
+            otherPosts.push(updatePost[0]);
+
+            postAction({
+                activityType: 'post',
+                content: otherPosts
+            });
+
+
         });
+
     };
 
     commentUpdate = ( comment ) => {
@@ -86,8 +102,6 @@ class PostDetail extends Component{
                     author: commentFields_author,
                     parentId: blog.selectedId
                 }
-
-                console.log(Object.assign({}, commentObj));
                 postNewComment(Object.assign({}, commentObj)).then((res) => {
 
                     for(var key in res){
@@ -104,16 +118,20 @@ class PostDetail extends Component{
                     });
 
                     //update blog post object by incrementing the comment count.
-                    let tempPost = []
-                    blog.post.map(post => {
-                        if(post.id === blog.selectedId)
-                            post.commentCount += 1;
-                        tempPost.push(post);
-                    });
+                    let updatePost = blog.post.filter(p => p.id === blog.selectedId);
+                    updatePost[0].commentCount += 1;
+                    let otherPosts = blog.post.filter(p => p.id !== blog.selectedId);
+                    otherPosts.push(updatePost[0]);
+
+
+                    // let t = blog.post.map(post => {
+                    //     if(post.id === blog.selectedId)
+                    //         post.commentCount = post.commentCount + 1;
+                    // });
 
                     postAction({
                         activityType: 'post',
-                        content: tempPost
+                        content: otherPosts
                     });
 
                     this.setState({ addCommentMode: false, commentFields_author: '', commentFields_comment: ''  });
@@ -229,7 +247,9 @@ class PostDetail extends Component{
 
     render(){
 
-        const { post, comment } = this.props;
+        let { blog, comment } = this.props;
+        let post = (blog.selectedId) ? blog.post.filter(p => p.id === blog.selectedId) : [];
+        console.log(post);
         const { home_redirect, addCommentMode, updateCommentMode, validation, commentFields_comment, commentFields_author } = this.state;
 
         return(
@@ -426,7 +446,6 @@ class PostDetail extends Component{
 
 function mapStateToProps({blog, comment}){
     return{
-        post: (blog.selectedId) ? blog.post.filter(p => p.id === blog.selectedId) : [],
         comment:(blog.selectedId) ? comment.comments.filter(c => c.parentId === blog.selectedId) : [],
         blog: blog,
         allComments: comment.comments

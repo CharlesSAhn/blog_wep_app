@@ -69,3 +69,9 @@ export const voteCOMMENTS = (id, data) =>
         headers,
         body: JSON.stringify({ data })
     }).then(res => res)
+
+export const deleteComments = (id) =>
+    fetch(`${api}/comments/${id}`, {
+        method: 'DELETE',
+        headers
+    }).then(res => res)
